@@ -18,4 +18,4 @@ const SellerSchema=mongoose.Schema({
         default:"seller"
     }
 })
-module.export=mongoose.model("Seller",SellerSchema)
+module.exports=mongoose.model("Seller",SellerSchema)

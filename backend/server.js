@@ -9,13 +9,14 @@ const sellerRoutes=require("./routes/sellerRoutes")
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 app.use(cors({
-    orgin: "http://localhost:5173",
+    origin: "http://localhost:5173",
     credentials: true
 }))
+// app.use(cors())
 app.use(cookieParser())
 connectDB()
 //routes should be last
-app.use("/",sellerRoutes)
+app.use("/api/seller",sellerRoutes)
 PORT = process.env.PORT
 app.listen(PORT, () => {
     console.log(`server is running on port ${PORT}`)
