@@ -78,7 +78,7 @@ export default function Register() {
                     onChange={handleChange} />
                 <br />
                 <input
-                    type='text'
+                    type='email'
                     name='email'
                     placeholder='Enter email'
                     onChange={handleChange} />

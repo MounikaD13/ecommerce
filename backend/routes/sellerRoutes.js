@@ -4,6 +4,7 @@ const transporter = require("../utils/sendEmail")
 const sellerSchema = require("../models/Seller.js")
 const jwt = require("jsonwebtoken")
 const bcrypt = require("bcrypt")
+const { generateAccessToken, generateRefreshToken } = require("../utils/generateTokens.js")
 
 router.post("/send-otp", async (req, res) => {
     const { email } = req.body
@@ -68,5 +69,74 @@ router.post("/register", async (req, res) => {
         console.log("error in register", err)
         return res.status(500).json({ "message": "registration failed" })
     }
+})
+router.post("/login", async (req, res) => {
+    const { email, password } = req.body
+    try {
+        const seller = await sellerSchema.findOne({ email })
+        if (!seller) {
+            return res.status(404).json({ message: "user not found" })
+        }
+        const isMatch = await bcrypt.compare(password, seller.password)
+        if (!isMatch) {
+            return res.status(401).json({ message: "invalid password" })
+        }
+        //token
+        const accessToken = generateAccessToken()
+        const refreshToken = generateRefreshToken()
+        seller.refreshToken = refreshToken
+        res.cookie('refreshToken', refreshToken, {
+            httpOnly: true,
+            path: "/",
+            secure: false,
+            sameSite: "lax",
+            maxAge: 7 * 24 * 60 * 60 * 1000
+        })
+        res.status(200).json({
+            "message": "Login successful",
+            accessToken,
+            seller: { id: seller._id, name: seller.name, email: seller.email }
+        })
+    }
+    catch (err) {
+        console.log("error in login", err)
+        return res.status(500).json({ "message": "login failed" })
+    }
+})
+router.post("/refresh-token", async (req, res) => {
+    const refreshToken = req.cookies.refreshToken
+    if (!refreshToken) {
+        return res.status(400).json({ message: "invalid cookie or refresh token" })
+    }
+    try {
+        const decoded = jwt.verify(refreshToken, process.env.JWT_REFRESH)
+        const seller = await sellerSchema.findById(decoded.id)
+        if (!seller || seller.refreshToken !== refreshToken)
+            return res.status(400).json({ message: "invalid token" })
+        const newAccessToken = generateAccessToken()
+        return res.json({
+            accessToken: newAccessToken
+        })
+    }
+    catch (err) {
+        console.log(err)
+    }
+})
+router.post("/logout",async(req,res)=>{
+    const refreshToken=req.cookies.refreshToken
+    // const seller=await sellerSchema.findOne(refreshToken)
+    // if(seller){
+    //     seller.refreshToken=null
+    //     await seller.save()
+    // }
+    const decoded=jwt.verify(refreshToken,process.env.JWT_REFRESH)
+    const seller=await sellerSchema.findById(decoded.id)
+    if(seller){
+        seller.refreshToken=null
+        await seller.save()
+    }
+
+    res.clearCookie(refreshToken)
+     res.status(200).json({ "message": 'logged out successfully' })
 })
 module.exports = router
