@@ -95,7 +95,7 @@ router.post("/login", async (req, res) => {
         res.status(200).json({
             "message": "Login successful",
             accessToken,
-            seller: { id: seller._id, name: seller.name, email: seller.email }
+            seller: { id: seller._id, name: seller.name, email: seller.email,role:seller.role }
         })
     }
     catch (err) {

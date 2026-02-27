@@ -25,3 +25,6 @@ const authorizeRole=(...roles)=>{
     }
 }
 module.exports={authorizeRole,protect}
+//This ensures only logged-in users can access protected routes.This ensures only users with specific roles (like admin, seller, buyer) can access certain routes.
+{/*} I implemented JWT-based authentication using a protect middleware and added role-based authorization 
+// using a higher-order middleware to secure different routes based on user roles.*/}
